@@ -15,14 +15,41 @@ pub fn input_generator_day4(input: &str) -> (usize, usize) {
     (vals[0], vals[1])
 }
 
-fn is_valid(digits: &[usize]) -> bool {
-    // Must have a duplicate somewhere
-    for n in 1..6 {
-        if digits[n] == digits[n - 1] {
-            return true;
+fn is_valid(digits: &[usize], part2: bool) -> bool {
+    // Given our number construction, we're guaranteed a monotonically increasing
+    // digit sequence. So all we have to check is the duplicate question.
+    let mut dup_count = 0;
+    for x in digits.windows(2) {
+        if x[0] == x[1] {
+            if !part2 {
+                // We can early-out if we're just looking for any duplicates;
+                // part 2 requires a little extra work
+                return true;
+            }
+            dup_count += 1;
+        } else {
+            if dup_count == 1 {
+                return true;
+            }
+
+            dup_count = 0;
         }
     }
-    false
+    // If we're here and in part 1, there aren't any duplicates at all,
+    // so dup_count will always be false. Otherwise, this just checks to make sure
+    // the final pair of values is checked.
+    dup_count == 1
+}
+
+#[test]
+fn test_day4_valid() {
+    assert_eq!(is_valid(&[1, 1, 1, 1, 1, 1], true), false);
+    assert_eq!(is_valid(&[1, 1, 1, 1, 1, 1], false), true);
+    assert_eq!(is_valid(&[1, 1, 2, 2, 2, 2], true), true);
+    assert_eq!(is_valid(&[1, 1, 2, 2, 2, 2], false), true);
+    assert_eq!(is_valid(&[1, 2, 3, 4, 5, 6], true), false);
+    assert_eq!(is_valid(&[1, 2, 3, 4, 5, 6], false), false);
+    assert_eq!(is_valid(&[1, 2, 3, 4, 5, 5], true), true);
 }
 
 fn get_num(digits: &[usize]) -> usize {
@@ -34,8 +61,7 @@ fn get_num(digits: &[usize]) -> usize {
     acc
 }
 
-#[aoc(day4, part1)]
-pub fn solve_day4_part1((start, end): &(usize, usize)) -> usize {
+fn day4((start, end): &(usize, usize), part2: bool) -> usize {
     let mut digits = [0; 6];
     let mut val = *start;
     let mut index = 5;
@@ -55,7 +81,7 @@ pub fn solve_day4_part1((start, end): &(usize, usize)) -> usize {
     let mut count = 0;
 
     while get_num(&digits) < *end {
-        if is_valid(&digits) {
+        if is_valid(&digits, part2) {
             count += 1;
         }
 
@@ -73,54 +99,12 @@ pub fn solve_day4_part1((start, end): &(usize, usize)) -> usize {
     count
 }
 
-fn is_valid_2(digits: &[usize]) -> bool {
-    // Must have an exact duplicate somewhere
-    for n in 1..6 {
-        if digits[n] == digits[n - 1]
-            && (n < 2 || digits[n - 2] != digits[n])
-            && (n > 4 || digits[n + 1] != digits[n])
-        {
-            return true;
-        }
-    }
-    false
+#[aoc(day4, part1)]
+pub fn solve_day4_part1(range: &(usize, usize)) -> usize {
+    day4(range, false)
 }
 
 #[aoc(day4, part2)]
-pub fn solve_day4_part2((start, end): &(usize, usize)) -> usize {
-    let mut digits = [0; 6];
-    let mut val = *start;
-    let mut index = 5;
-    while val > 0 {
-        digits[index] = val % 10;
-        val /= 10;
-        index -= 1;
-    }
-
-    // Start with the smallest strictly-increasing number in range
-    for n in 1..6 {
-        if digits[n] < digits[n - 1] {
-            digits[n] = digits[n - 1];
-        }
-    }
-
-    let mut count = 0;
-
-    while get_num(&digits) < *end {
-        if is_valid_2(&digits) {
-            count += 1;
-        }
-
-        let mut change_idx = 5;
-        while digits[change_idx] == 9 {
-            change_idx -= 1;
-        }
-        digits[change_idx] += 1;
-        let selected_num = digits[change_idx];
-        for digit in digits.iter_mut().skip(change_idx) {
-            *digit = selected_num;
-        }
-    }
-
-    count
+pub fn solve_day4_part2(range: &(usize, usize)) -> usize {
+    day4(range, true)
 }
