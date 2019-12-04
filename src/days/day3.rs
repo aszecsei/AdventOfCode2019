@@ -1,5 +1,7 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 
+use crate::helper::*;
+
 // ======================================================
 // DAY 3
 // ======================================================
@@ -14,9 +16,6 @@ pub enum Direction {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct PathComponent(Direction, usize);
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Position(i64, i64);
 
 #[aoc_generator(day3)]
 pub fn input_generator_day3(input: &str) -> (Vec<PathComponent>, Vec<PathComponent>) {
@@ -42,6 +41,15 @@ pub fn input_generator_day3(input: &str) -> (Vec<PathComponent>, Vec<PathCompone
     (inp[0].clone(), inp[1].clone())
 }
 
+fn delta_for_direction(dir: Direction) -> Point {
+    match dir {
+        Direction::Left => Point::new(-1, 0),
+        Direction::Right => Point::new(1, 0),
+        Direction::Up => Point::new(0, -1),
+        Direction::Down => Point::new(0, 1),
+    }
+}
+
 #[aoc(day3, part1)]
 pub fn solve_day3_part1(input: &(Vec<PathComponent>, Vec<PathComponent>)) -> u64 {
     use std::collections::HashSet;
@@ -51,38 +59,28 @@ pub fn solve_day3_part1(input: &(Vec<PathComponent>, Vec<PathComponent>)) -> u64
     let path1 = &input.0;
     let path2 = &input.1;
 
-    let mut positions: HashSet<Position> = HashSet::default();
+    let mut positions: HashSet<Point> = HashSet::default();
 
     // First wire
     {
-        let mut current_position = Position(0, 0);
+        let mut current_position = Point::new(0, 0);
         for movement in path1.iter() {
             for _ in 0..movement.1 {
-                current_position = match movement.0 {
-                    Direction::Left => Position(current_position.0 - 1, current_position.1),
-                    Direction::Right => Position(current_position.0 + 1, current_position.1),
-                    Direction::Up => Position(current_position.0, current_position.1 - 1),
-                    Direction::Down => Position(current_position.0, current_position.1 + 1),
-                };
+                current_position += delta_for_direction(movement.0);
                 positions.insert(current_position);
             }
         }
     }
     // Second wire - check for intersections
     {
-        let mut current_position = Position(0, 0);
+        let mut current_position = Point::new(0, 0);
         for movement in path2.iter() {
             for _ in 0..movement.1 {
-                current_position = match movement.0 {
-                    Direction::Left => Position(current_position.0 - 1, current_position.1),
-                    Direction::Right => Position(current_position.0 + 1, current_position.1),
-                    Direction::Up => Position(current_position.0, current_position.1 - 1),
-                    Direction::Down => Position(current_position.0, current_position.1 + 1),
-                };
+                current_position += delta_for_direction(movement.0);
                 if positions.contains(&current_position) {
                     // We have an intersection; calculate the manhattan distance and
                     // store if this is our closest intersection yet
-                    let md = (current_position.0.abs() + current_position.1.abs()) as u64;
+                    let md = (current_position.manhattan()) as u64;
                     closest = std::cmp::min(md, closest);
                 }
             }
@@ -101,20 +99,15 @@ pub fn solve_day3_part2(input: &(Vec<PathComponent>, Vec<PathComponent>)) -> u64
     let path1 = &input.0;
     let path2 = &input.1;
 
-    let mut positions: HashMap<Position, u64> = HashMap::default();
+    let mut positions: HashMap<Point, u64> = HashMap::default();
 
     // First wire
     {
-        let mut current_position = Position(0, 0);
+        let mut current_position = Point::new(0, 0);
         let mut total_movement = 0;
         for movement in path1.iter() {
             for _ in 0..movement.1 {
-                current_position = match movement.0 {
-                    Direction::Left => Position(current_position.0 - 1, current_position.1),
-                    Direction::Right => Position(current_position.0 + 1, current_position.1),
-                    Direction::Up => Position(current_position.0, current_position.1 - 1),
-                    Direction::Down => Position(current_position.0, current_position.1 + 1),
-                };
+                current_position += delta_for_direction(movement.0);
                 total_movement += 1;
                 positions.insert(current_position, total_movement);
             }
@@ -122,16 +115,11 @@ pub fn solve_day3_part2(input: &(Vec<PathComponent>, Vec<PathComponent>)) -> u64
     }
     // Second wire - check for intersections
     {
-        let mut current_position = Position(0, 0);
+        let mut current_position = Point::new(0, 0);
         let mut total_movement = 0;
         for movement in path2.iter() {
             for _ in 0..movement.1 {
-                current_position = match movement.0 {
-                    Direction::Left => Position(current_position.0 - 1, current_position.1),
-                    Direction::Right => Position(current_position.0 + 1, current_position.1),
-                    Direction::Up => Position(current_position.0, current_position.1 - 1),
-                    Direction::Down => Position(current_position.0, current_position.1 + 1),
-                };
+                current_position += delta_for_direction(movement.0);
                 total_movement += 1;
 
                 if positions.contains_key(&current_position) {
