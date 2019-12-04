@@ -1,4 +1,6 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+use itertools::Itertools;
+use std::collections::{HashMap, HashSet};
 
 use crate::helper::*;
 
@@ -35,9 +37,9 @@ pub fn input_generator_day3(input: &str) -> (Vec<PathComponent>, Vec<PathCompone
                     };
                     PathComponent(d, amount)
                 })
-                .collect::<Vec<_>>()
+                .collect_vec()
         })
-        .collect::<Vec<_>>();
+        .collect_vec();
     (inp[0].clone(), inp[1].clone())
 }
 
@@ -52,8 +54,6 @@ fn delta_for_direction(dir: Direction) -> Point {
 
 #[aoc(day3, part1)]
 pub fn solve_day3_part1(input: &(Vec<PathComponent>, Vec<PathComponent>)) -> u64 {
-    use std::collections::HashSet;
-
     let mut closest = std::u64::MAX;
 
     let path1 = &input.0;
@@ -92,8 +92,6 @@ pub fn solve_day3_part1(input: &(Vec<PathComponent>, Vec<PathComponent>)) -> u64
 
 #[aoc(day3, part2)]
 pub fn solve_day3_part2(input: &(Vec<PathComponent>, Vec<PathComponent>)) -> u64 {
-    use std::collections::HashMap;
-
     let mut closest = std::u64::MAX;
 
     let path1 = &input.0;
@@ -123,7 +121,7 @@ pub fn solve_day3_part2(input: &(Vec<PathComponent>, Vec<PathComponent>)) -> u64
                 total_movement += 1;
 
                 if positions.contains_key(&current_position) {
-                    // We have an intersection; calculate the manhattan distance and
+                    // We have an intersection; calculate the total movement and
                     // store if this is our closest intersection yet
                     let both_movement = total_movement + positions[&current_position];
                     closest = std::cmp::min(both_movement, closest);
