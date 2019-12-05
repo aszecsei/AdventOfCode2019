@@ -38,12 +38,7 @@ fn test_day4_valid() {
 }
 
 fn get_num(digits: &[usize]) -> usize {
-    let mut acc = 0;
-    for d in digits {
-        acc *= 10;
-        acc += d;
-    }
-    acc
+    digits.iter().fold(0usize, |acc, x| acc * 10 + x)
 }
 
 fn day4((start, end): &(usize, usize), part2: bool) -> usize {
