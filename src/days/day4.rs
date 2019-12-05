@@ -18,27 +18,9 @@ pub fn input_generator_day4(input: &str) -> (usize, usize) {
 fn is_valid(digits: &[usize], part2: bool) -> bool {
     // Given our number construction, we're guaranteed a monotonically increasing
     // digit sequence. So all we have to check is the duplicate question.
-    let mut dup_count = 0;
-    for x in digits.windows(2) {
-        if x[0] == x[1] {
-            if !part2 {
-                // We can early-out if we're just looking for any duplicates;
-                // part 2 requires a little extra work
-                return true;
-            }
-            dup_count += 1;
-        } else {
-            if dup_count == 1 {
-                return true;
-            }
-
-            dup_count = 0;
-        }
-    }
-    // If we're here and in part 1, there aren't any duplicates at all,
-    // so dup_count will always be false. Otherwise, this just checks to make sure
-    // the final pair of values is checked.
-    dup_count == 1
+    digits.iter().group_by(|&d| d).into_iter().map(|(_key, group)| group.count()).any(|f| {
+        if part2 { f == 2 } else { f >= 2 }
+    })
 }
 
 #[test]
