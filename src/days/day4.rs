@@ -18,9 +18,12 @@ pub fn input_generator_day4(input: &str) -> (usize, usize) {
 fn is_valid(digits: &[usize], part2: bool) -> bool {
     // Given our number construction, we're guaranteed a monotonically increasing
     // digit sequence. So all we have to check is the duplicate question.
-    digits.iter().group_by(|&d| d).into_iter().map(|(_key, group)| group.count()).any(|f| {
-        if part2 { f == 2 } else { f >= 2 }
-    })
+    digits
+        .iter()
+        .group_by(|&d| d)
+        .into_iter()
+        .map(|(_key, group)| group.count())
+        .any(|f| if part2 { f == 2 } else { f >= 2 })
 }
 
 #[test]

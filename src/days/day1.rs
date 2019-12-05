@@ -25,9 +25,7 @@ pub fn solve_day1_part2(input: &[i64]) -> i64 {
         .iter()
         .map(|&x| fuel_cost(x))
         .flat_map(|x| {
-            std::iter::successors(Some(x), |&x| {
-                if x == 0 { None } else { Some(fuel_cost(x)) }
-            })
+            std::iter::successors(Some(x), |&x| if x == 0 { None } else { Some(fuel_cost(x)) })
         })
         .sum()
 }

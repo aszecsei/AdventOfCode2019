@@ -17,7 +17,7 @@ pub fn input_generator_day2(input: &str) -> Vec<i64> {
 #[aoc(day2, part1)]
 pub fn solve_day2_part1(input: &[i64]) -> i64 {
     let mut program = Program::new(input, &[]);
-    
+
     // Restore the gravity assist program
     // Replace position 1 with the value 12
     program.data[1] = 12;
