@@ -2,6 +2,7 @@
 
 mod days;
 mod helper;
+mod shared;
 
 use aoc_runner_derive::aoc_lib;
 
