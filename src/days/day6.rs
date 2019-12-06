@@ -30,6 +30,7 @@ struct Orbit {
     pub text_id: String,
     pub orbits: Option<OrbitId>,
 
+    dist_com: isize,
     dist_you: isize,
 }
 
@@ -40,17 +41,35 @@ impl Orbit {
             text_id,
             orbits: None,
 
+            dist_com: -1,
             dist_you: -1,
         }
     }
 
-    pub fn orbit_count(&self, arena: &Arena<Orbit>) -> usize {
-        if let Some(pa) = self.orbits {
-            let pa = &arena[pa];
-            1 + pa.orbit_count(arena)
-        } else {
-            0
+    pub fn set_orbit_count(id: OrbitId, arena: &mut Arena<Orbit>) {
+        {
+            let node = arena.get_mut(id).unwrap();
+            if let Some(parent) = node.orbits {
+                let parent_node = arena.get(parent).unwrap();
+                if parent_node.dist_com == -1 {
+                    Orbit::set_orbit_count(parent, arena);
+                }
+            }
         }
+        {
+            let parent = {
+                let node = arena.get_mut(id).unwrap();
+                node.orbits
+            };
+            let parent_node = parent.map(|p| arena.get(p).unwrap());
+            let dist = parent_node.map_or(0, |p| 1 + p.dist_com);
+            let mut node = arena.get_mut(id).unwrap();
+            node.dist_com = dist;
+        }
+    }
+
+    pub fn orbit_count(&self) -> usize {
+        self.dist_com as usize
     }
 }
 
@@ -77,12 +96,10 @@ pub fn solve_day6_part1(input: &[(String, String)]) -> usize {
     }
 
     ids.iter()
-        .map(|id| {
-            arena
-                .get(orbits[id.to_owned()])
-                .unwrap()
-                .orbit_count(&arena)
-        })
+        .for_each(|id| Orbit::set_orbit_count(orbits[id.to_owned()], &mut arena));
+
+    ids.iter()
+        .map(|id| arena.get(orbits[id.to_owned()]).unwrap().orbit_count())
         .sum()
 }
 
