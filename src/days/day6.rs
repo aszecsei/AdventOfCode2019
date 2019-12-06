@@ -33,7 +33,7 @@ struct Orbit {
     dist_you: isize,
 }
 
-impl<'a> Orbit {
+impl Orbit {
     pub fn new(id: OrbitId, text_id: String) -> Self {
         Orbit {
             id,
