@@ -42,7 +42,8 @@ pub enum IntcodeStepResult {
 }
 
 pub struct Program {
-    pub data: HashMap<usize, i64>,
+    pub data: Vec<i64>,
+    pub memory: HashMap<usize, i64>,
     pub pc: usize,
     pub inputs: Vec<i64>,
     pub outputs: Vec<i64>,
@@ -53,9 +54,9 @@ pub struct Program {
 
 impl Program {
     pub fn new(data: &[i64], inputs: &[i64]) -> Self {
-        let hm: HashMap<_, _> = data.iter().copied().enumerate().collect();
         Program {
-            data: hm,
+            data: data.to_vec(),
+            memory: HashMap::default(),
             pc: 0,
             inputs: inputs.to_vec(),
             outputs: vec![],
@@ -204,8 +205,10 @@ impl std::ops::Index<usize> for Program {
     type Output = i64;
 
     fn index(&self, idx: usize) -> &Self::Output {
-        if self.data.contains_key(&idx) {
-            self.data.get(&idx).unwrap()
+        if idx < self.data.len() {
+            &self.data[idx]
+        } else if self.memory.contains_key(&idx) {
+            self.memory.get(&idx).unwrap()
         } else {
             &0
         }
@@ -214,7 +217,11 @@ impl std::ops::Index<usize> for Program {
 
 impl std::ops::IndexMut<usize> for Program {
     fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
-        self.data.entry(idx).or_insert(0);
-        self.data.get_mut(&idx).unwrap()
+        if idx < self.data.len() {
+            &mut self.data[idx]
+        } else {
+            self.memory.entry(idx).or_insert(0);
+            self.memory.get_mut(&idx).unwrap()
+        }
     }
 }
