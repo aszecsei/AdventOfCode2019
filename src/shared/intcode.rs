@@ -31,11 +31,19 @@ fn get_num(digits: &[u8]) -> u8 {
     acc
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum IntcodeStepResult {
+    Ok,
+    Halt,
+    WaitingForInput,
+}
+
 pub struct Program {
     pub data: Vec<i64>,
     pub pc: usize,
     pub inputs: Vec<i64>,
     pub outputs: Vec<i64>,
+    status: IntcodeStepResult,
     input_idx: usize,
 }
 
@@ -46,6 +54,7 @@ impl Program {
             pc: 0,
             inputs: inputs.to_vec(),
             outputs: vec![],
+            status: IntcodeStepResult::Ok,
             input_idx: 0,
         }
     }
@@ -57,7 +66,7 @@ impl Program {
         }
     }
 
-    pub fn step(&mut self) -> bool {
+    pub fn step(&mut self) -> IntcodeStepResult {
         let mut instruction = self.data[self.pc];
         let digits = {
             let mut digits = [0; 5];
@@ -97,6 +106,10 @@ impl Program {
                 self.pc += 4;
             }
             Opcodes::Input => {
+                if self.input_idx >= self.inputs.len() {
+                    self.status = IntcodeStepResult::WaitingForInput;
+                    return self.status;
+                }
                 let input = self.inputs[self.input_idx];
                 self.input_idx += 1;
                 let out_addr = self.data[self.pc + 1] as usize;
@@ -140,12 +153,24 @@ impl Program {
                 self.data[out_addr] = if in1 == in2 { 1 } else { 0 };
                 self.pc += 4;
             }
-            Opcodes::Halt => return false,
+            Opcodes::Halt => {
+                self.status = IntcodeStepResult::Halt;
+                return self.status;
+            }
         }
-        true
+        self.status = IntcodeStepResult::Ok;
+        self.status
     }
 
     pub fn run(&mut self) {
-        while self.step() {}
+        while self.step() == IntcodeStepResult::Ok {}
+    }
+
+    pub fn add_input(&mut self, input: i64) {
+        self.inputs.push(input);
+    }
+
+    pub fn get_status(&self) -> IntcodeStepResult {
+        self.status
     }
 }

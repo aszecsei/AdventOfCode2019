@@ -7,7 +7,7 @@ use crate::shared::*;
 // ======================================================
 
 #[aoc_generator(day5)]
-pub fn input_generator_day2(input: &str) -> Vec<i64> {
+pub fn input_generator_day5(input: &str) -> Vec<i64> {
     input
         .split(',')
         .map(|x| x.trim().parse().unwrap())
