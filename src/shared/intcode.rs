@@ -1,5 +1,6 @@
 use num_enum::TryFromPrimitive;
 use std::convert::TryInto;
+use std::collections::HashMap;
 
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, TryFromPrimitive)]
@@ -12,6 +13,7 @@ pub enum Opcodes {
     JumpIfFalse = 6,
     LessThan = 7,
     Equals = 8,
+    RelativeBaseOffset = 9,
     Halt = 99,
 }
 
@@ -20,6 +22,7 @@ pub enum Opcodes {
 pub enum ParameterModes {
     Position = 0,
     Immediate = 1,
+    Relative = 2,
 }
 
 fn get_num(digits: &[u8]) -> u8 {
@@ -39,35 +42,52 @@ pub enum IntcodeStepResult {
 }
 
 pub struct Program {
-    pub data: Vec<i64>,
+    pub data: HashMap<usize, i64>,
     pub pc: usize,
     pub inputs: Vec<i64>,
     pub outputs: Vec<i64>,
     status: IntcodeStepResult,
     input_idx: usize,
+    relative_base: usize,
 }
 
 impl Program {
     pub fn new(data: &[i64], inputs: &[i64]) -> Self {
+        let hm: HashMap<_, _> = data.iter().copied().enumerate().collect();
         Program {
-            data: data.to_vec(),
+            data: hm,
             pc: 0,
             inputs: inputs.to_vec(),
             outputs: vec![],
             status: IntcodeStepResult::Ok,
             input_idx: 0,
+            relative_base: 0,
         }
     }
 
     fn get_val(&self, idx: i64, mode: ParameterModes) -> i64 {
         match mode {
             ParameterModes::Immediate => idx,
-            ParameterModes::Position => self.data[idx as usize],
+            ParameterModes::Position => self[idx as usize],
+            ParameterModes::Relative => self[self.relative_base + idx as usize],
+        }
+    }
+
+    fn get_val_mut(&mut self, idx: i64, mode: ParameterModes) -> &mut i64 {
+        let rb = self.relative_base;
+        match mode {
+            ParameterModes::Immediate => panic!("Immediate mode cannot be used for outputs!"),
+            ParameterModes::Position => &mut self[idx as usize],
+            ParameterModes::Relative => &mut self[rb + idx as usize],
         }
     }
 
     pub fn step(&mut self) -> IntcodeStepResult {
-        let mut instruction = self.data[self.pc];
+        if self.status == IntcodeStepResult::Halt {
+            return self.status;
+        }
+
+        let mut instruction = self[self.pc];
         let digits = {
             let mut digits = [0; 5];
             let mut index = 4;
@@ -88,21 +108,21 @@ impl Program {
         let opcode: Opcodes = get_num(&digits[3..5]).try_into().unwrap();
         let param1_mode: ParameterModes = digits[2].try_into().unwrap();
         let param2_mode: ParameterModes = digits[1].try_into().unwrap();
-        let _param3_mode: ParameterModes = digits[0].try_into().unwrap();
+        let param3_mode: ParameterModes = digits[0].try_into().unwrap();
 
         match opcode {
             Opcodes::Addition => {
-                let in1 = self.get_val(self.data[self.pc + 1], param1_mode);
-                let in2 = self.get_val(self.data[self.pc + 2], param2_mode);
-                let out_addr = self.data[self.pc + 3] as usize;
-                self.data[out_addr] = in1 + in2;
+                let in1 = self.get_val(self[self.pc + 1], param1_mode);
+                let in2 = self.get_val(self[self.pc + 2], param2_mode);
+                let out = self.get_val_mut(self[self.pc + 3], param3_mode);
+                *out = in1 + in2;
                 self.pc += 4;
             }
             Opcodes::Multiplication => {
-                let in1 = self.get_val(self.data[self.pc + 1], param1_mode);
-                let in2 = self.get_val(self.data[self.pc + 2], param2_mode);
-                let out_addr = self.data[self.pc + 3] as usize;
-                self.data[out_addr] = in1 * in2;
+                let in1 = self.get_val(self[self.pc + 1], param1_mode);
+                let in2 = self.get_val(self[self.pc + 2], param2_mode);
+                let out = self.get_val_mut(self[self.pc + 3], param3_mode);
+                *out = in1 * in2;
                 self.pc += 4;
             }
             Opcodes::Input => {
@@ -112,18 +132,18 @@ impl Program {
                 }
                 let input = self.inputs[self.input_idx];
                 self.input_idx += 1;
-                let out_addr = self.data[self.pc + 1] as usize;
-                self.data[out_addr] = input;
+                let out = self.get_val_mut(self[self.pc + 1], param1_mode);
+                *out = input;
                 self.pc += 2;
             }
             Opcodes::Output => {
-                let in1 = self.get_val(self.data[self.pc + 1], param1_mode);
+                let in1 = self.get_val(self[self.pc + 1], param1_mode);
                 self.outputs.push(in1);
                 self.pc += 2;
             }
             Opcodes::JumpIfTrue => {
-                let in1 = self.get_val(self.data[self.pc + 1], param1_mode);
-                let in2 = self.get_val(self.data[self.pc + 2], param2_mode);
+                let in1 = self.get_val(self[self.pc + 1], param1_mode);
+                let in2 = self.get_val(self[self.pc + 2], param2_mode);
                 if in1 != 0 {
                     self.pc = in2 as usize;
                 } else {
@@ -131,8 +151,8 @@ impl Program {
                 }
             }
             Opcodes::JumpIfFalse => {
-                let in1 = self.get_val(self.data[self.pc + 1], param1_mode);
-                let in2 = self.get_val(self.data[self.pc + 2], param2_mode);
+                let in1 = self.get_val(self[self.pc + 1], param1_mode);
+                let in2 = self.get_val(self[self.pc + 2], param2_mode);
                 if in1 == 0 {
                     self.pc = in2 as usize;
                 } else {
@@ -140,18 +160,23 @@ impl Program {
                 }
             }
             Opcodes::LessThan => {
-                let in1 = self.get_val(self.data[self.pc + 1], param1_mode);
-                let in2 = self.get_val(self.data[self.pc + 2], param2_mode);
-                let out_addr = self.data[self.pc + 3] as usize;
-                self.data[out_addr] = if in1 < in2 { 1 } else { 0 };
+                let in1 = self.get_val(self[self.pc + 1], param1_mode);
+                let in2 = self.get_val(self[self.pc + 2], param2_mode);
+                let out = self.get_val_mut(self[self.pc + 3], param3_mode);
+                *out = if in1 < in2 { 1 } else { 0 };
                 self.pc += 4;
             }
             Opcodes::Equals => {
-                let in1 = self.get_val(self.data[self.pc + 1], param1_mode);
-                let in2 = self.get_val(self.data[self.pc + 2], param2_mode);
-                let out_addr = self.data[self.pc + 3] as usize;
-                self.data[out_addr] = if in1 == in2 { 1 } else { 0 };
+                let in1 = self.get_val(self[self.pc + 1], param1_mode);
+                let in2 = self.get_val(self[self.pc + 2], param2_mode);
+                let out = self.get_val_mut(self[self.pc + 3], param3_mode);
+                *out = if in1 == in2 { 1 } else { 0 };
                 self.pc += 4;
+            }
+            Opcodes::RelativeBaseOffset => {
+                let in1 = self.get_val(self[self.pc + 1], param1_mode);
+                self.relative_base += in1 as usize;
+                self.pc += 2;
             }
             Opcodes::Halt => {
                 self.status = IntcodeStepResult::Halt;
@@ -172,5 +197,24 @@ impl Program {
 
     pub fn get_status(&self) -> IntcodeStepResult {
         self.status
+    }
+}
+
+impl std::ops::Index<usize> for Program {
+    type Output = i64;
+
+    fn index(&self, idx: usize) -> &Self::Output {
+        if self.data.contains_key(&idx) {
+            self.data.get(&idx).unwrap()
+        } else {
+            &0
+        }
+    }
+}
+
+impl std::ops::IndexMut<usize> for Program {
+    fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
+        self.data.entry(idx).or_insert(0);
+        self.data.get_mut(&idx).unwrap()
     }
 }

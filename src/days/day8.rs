@@ -6,7 +6,7 @@ use itertools::Itertools;
 // ======================================================
 
 #[aoc_generator(day8)]
-pub fn input_generator_day7(input: &str) -> Vec<u8> {
+pub fn input_generator_day8(input: &str) -> Vec<u8> {
     input
         .chars()
         .map(|x| x.to_digit(10).unwrap() as u8)

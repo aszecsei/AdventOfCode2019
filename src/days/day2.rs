@@ -20,13 +20,13 @@ pub fn solve_day2_part1(input: &[i64]) -> i64 {
 
     // Restore the gravity assist program
     // Replace position 1 with the value 12
-    program.data[1] = 12;
-    program.data[2] = 2;
+    program[1] = 12;
+    program[2] = 2;
 
     // Run the computer
     program.run();
 
-    program.data[0]
+    program[0]
 }
 
 #[aoc(day2, part2)]
@@ -34,10 +34,10 @@ pub fn solve_day2_part2(input: &[i64]) -> i64 {
     for noun in 0..100 {
         for verb in 0..100 {
             let mut program = Program::new(input, &[]);
-            program.data[1] = noun;
-            program.data[2] = verb;
+            program[1] = noun;
+            program[2] = verb;
             program.run();
-            if program.data[0] == 19_690_720 {
+            if program[0] == 19_690_720 {
                 return 100 * noun + verb;
             }
         }
