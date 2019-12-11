@@ -19,7 +19,7 @@ pub fn solve_day8_part1(input: &[u8]) -> usize {
     const HEIGHT: usize = 6;
     let img = {
         let mut layers = vec![];
-        
+
         let mut idx = 0;
         let mut layer = [0u8; WIDTH * HEIGHT];
         for &pix in input.iter() {
@@ -33,11 +33,14 @@ pub fn solve_day8_part1(input: &[u8]) -> usize {
         layers
     };
 
-    let min_zero_layer = img.iter().min_by(|&x, &y| {
-        let xzc = bytecount::naive_count_32(x, 0);
-        let yzc = bytecount::naive_count_32(y, 0);
-        xzc.cmp(&yzc)
-    }).unwrap();
+    let min_zero_layer = img
+        .iter()
+        .min_by(|&x, &y| {
+            let xzc = bytecount::naive_count_32(x, 0);
+            let yzc = bytecount::naive_count_32(y, 0);
+            xzc.cmp(&yzc)
+        })
+        .unwrap();
 
     let noc = bytecount::naive_count_32(min_zero_layer, 1);
     let ntc = bytecount::naive_count_32(min_zero_layer, 2);
@@ -54,7 +57,7 @@ pub fn solve_day8_part2(input: &[u8]) -> String {
 
     let img = {
         let mut layers = vec![];
-        
+
         let mut idx = 0;
         let mut layer = [0u8; WIDTH * HEIGHT];
         for &pix in input.iter() {

@@ -33,7 +33,7 @@ pub fn solve_day7_part1(input: &[i64]) -> i64 {
         max_result = std::cmp::max(max_result, result);
     }
 
-    max_result    
+    max_result
 }
 
 #[aoc(day7, part2)]
@@ -43,7 +43,10 @@ pub fn solve_day7_part2(input: &[i64]) -> i64 {
     for phases in phase_settings.permutations(5) {
         let mut result = 0;
 
-        let mut programs = phases.iter().map(|&phase| Program::new(input, &[phase])).collect_vec();
+        let mut programs = phases
+            .iter()
+            .map(|&phase| Program::new(input, &[phase]))
+            .collect_vec();
 
         loop {
             for program in programs.iter_mut() {
@@ -61,5 +64,5 @@ pub fn solve_day7_part2(input: &[i64]) -> i64 {
         max_result = std::cmp::max(max_result, result);
     }
 
-    max_result    
+    max_result
 }

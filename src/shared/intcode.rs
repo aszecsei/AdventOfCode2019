@@ -1,6 +1,6 @@
 use num_enum::TryFromPrimitive;
-use std::convert::TryInto;
 use std::collections::HashMap;
+use std::convert::TryInto;
 
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, TryFromPrimitive)]
