@@ -1,11 +1,11 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
 
-use regex::Regex;
 use lazy_static::lazy_static;
-use std::collections::HashSet;
 use num::integer::lcm;
 use rayon::prelude::*;
+use regex::Regex;
+use std::collections::HashSet;
 
 use crate::helper::Point3;
 
@@ -16,7 +16,8 @@ use crate::helper::Point3;
 #[aoc_generator(day12)]
 pub fn input_generator_day12(input: &str) -> Vec<Point3> {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r"<x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+)>").unwrap();
+        static ref RE: Regex =
+            Regex::new(r"<x=(?P<x>-?\d+), y=(?P<y>-?\d+), z=(?P<z>-?\d+)>").unwrap();
     }
     input
         .lines()
@@ -57,39 +58,46 @@ pub fn solve_day12_part1_h(input: &[Point3], steps: i64) -> i64 {
     let mut moons = input.iter().map(|&x| Moon::from_pos(x)).collect_vec();
 
     for _ in 0..steps {
-        moons = moons.iter().map(|x| { // Apply gravity
-            let mut new_vel = x.vel;
-            for y in moons.iter() {
-                // Get x-vel change
-                let delta_x = match x.pos.x().cmp(&y.pos.x()) {
-                    std::cmp::Ordering::Less => 1,
-                    std::cmp::Ordering::Equal => 0,
-                    std::cmp::Ordering::Greater => -1,
-                };
-                let delta_y = match x.pos.y().cmp(&y.pos.y()) {
-                    std::cmp::Ordering::Less => 1,
-                    std::cmp::Ordering::Equal => 0,
-                    std::cmp::Ordering::Greater => -1,
-                };
-                let delta_z = match x.pos.z().cmp(&y.pos.z()) {
-                    std::cmp::Ordering::Less => 1,
-                    std::cmp::Ordering::Equal => 0,
-                    std::cmp::Ordering::Greater => -1,
-                };
-                new_vel += Point3::new(delta_x, delta_y, delta_z);
-            }
-            Moon::new(x.pos, new_vel).apply_velocity()
-        }).collect_vec();
+        moons = moons
+            .iter()
+            .map(|x| {
+                // Apply gravity
+                let mut new_vel = x.vel;
+                for y in moons.iter() {
+                    // Get x-vel change
+                    let delta_x = match x.pos.x().cmp(&y.pos.x()) {
+                        std::cmp::Ordering::Less => 1,
+                        std::cmp::Ordering::Equal => 0,
+                        std::cmp::Ordering::Greater => -1,
+                    };
+                    let delta_y = match x.pos.y().cmp(&y.pos.y()) {
+                        std::cmp::Ordering::Less => 1,
+                        std::cmp::Ordering::Equal => 0,
+                        std::cmp::Ordering::Greater => -1,
+                    };
+                    let delta_z = match x.pos.z().cmp(&y.pos.z()) {
+                        std::cmp::Ordering::Less => 1,
+                        std::cmp::Ordering::Equal => 0,
+                        std::cmp::Ordering::Greater => -1,
+                    };
+                    new_vel += Point3::new(delta_x, delta_y, delta_z);
+                }
+                Moon::new(x.pos, new_vel).apply_velocity()
+            })
+            .collect_vec();
     }
 
     // Calculate energy
-    moons.iter().map(|m| {
-        // Potential energy
-        let pot = m.pos.manhattan();
-        let kin = m.vel.manhattan();
-        
-        pot * kin
-    }).sum()
+    moons
+        .iter()
+        .map(|m| {
+            // Potential energy
+            let pot = m.pos.manhattan();
+            let kin = m.vel.manhattan();
+
+            pot * kin
+        })
+        .sum()
 }
 
 #[aoc(day12, part1)]
@@ -103,18 +111,22 @@ fn day12_p2_helper(input: &[Point3], idx: usize) -> i64 {
     let mut steps = 0;
 
     loop {
-        moons = moons.iter().map(|x| { // Apply gravity
-            let mut new_vel = x.vel;
-            for y in moons.iter() {
-                let delta = match x.pos[idx].cmp(&y.pos[idx]) {
-                    std::cmp::Ordering::Less => 1,
-                    std::cmp::Ordering::Equal => 0,
-                    std::cmp::Ordering::Greater => -1,
-                };
-                new_vel[idx] += delta;
-            }
-            Moon::new(x.pos, new_vel).apply_velocity()
-        }).collect_vec();
+        moons = moons
+            .iter()
+            .map(|x| {
+                // Apply gravity
+                let mut new_vel = x.vel;
+                for y in moons.iter() {
+                    let delta = match x.pos[idx].cmp(&y.pos[idx]) {
+                        std::cmp::Ordering::Less => 1,
+                        std::cmp::Ordering::Equal => 0,
+                        std::cmp::Ordering::Greater => -1,
+                    };
+                    new_vel[idx] += delta;
+                }
+                Moon::new(x.pos, new_vel).apply_velocity()
+            })
+            .collect_vec();
 
         if prev.contains(&moons) {
             break;
@@ -127,7 +139,10 @@ fn day12_p2_helper(input: &[Point3], idx: usize) -> i64 {
 
 #[aoc(day12, part2)]
 pub fn solve_day12_part2(input: &[Point3]) -> i64 {
-    [0, 1, 2].par_iter().map(|&i| day12_p2_helper(input, i)).reduce(|| 1, lcm)
+    [0, 1, 2]
+        .par_iter()
+        .map(|&i| day12_p2_helper(input, i))
+        .reduce(|| 1, lcm)
 }
 
 #[test]

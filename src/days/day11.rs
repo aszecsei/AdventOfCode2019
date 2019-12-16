@@ -1,6 +1,5 @@
-
-use aoc_runner_derive::{aoc, aoc_generator};
 use crate::shared::*;
+use aoc_runner_derive::{aoc, aoc_generator};
 use std::collections::HashMap;
 
 // ======================================================
@@ -18,7 +17,7 @@ pub fn input_generator_day11(input: &str) -> Vec<i64> {
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum Color {
     Black,
-    White
+    White,
 }
 
 #[aoc(day11, part1)]
@@ -63,7 +62,7 @@ pub fn solve_day11_part1(input: &[i64]) -> String {
             if dir >= 4 {
                 dir -= 4;
             }
-            
+
             // Move forward one panel
             match dir {
                 0 => y -= 1,
@@ -132,7 +131,7 @@ pub fn solve_day11_part2(input: &[i64]) -> String {
             if dir >= 4 {
                 dir -= 4;
             }
-            
+
             // Move forward one panel
             match dir {
                 0 => y -= 1,

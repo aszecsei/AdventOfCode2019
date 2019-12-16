@@ -1,6 +1,6 @@
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Point3 {
-    pub v: [i64; 3]
+    pub v: [i64; 3],
 }
 
 impl Point3 {
@@ -35,9 +35,11 @@ impl std::ops::Add<Point3> for Point3 {
 
     fn add(self, rhs: Point3) -> Self::Output {
         Point3 {
-            v: [self.v[0] + rhs.v[0],
+            v: [
+                self.v[0] + rhs.v[0],
                 self.v[1] + rhs.v[1],
-                self.v[2] + rhs.v[2]],
+                self.v[2] + rhs.v[2],
+            ],
         }
     }
 }
@@ -73,11 +75,7 @@ impl std::ops::Mul<i64> for Point3 {
 
     fn mul(self, rhs: i64) -> Self::Output {
         Point3 {
-            v: [
-                self.v[0] * rhs,
-                self.v[1] * rhs,
-                self.v[2] * rhs,
-            ],
+            v: [self.v[0] * rhs, self.v[1] * rhs, self.v[2] * rhs],
         }
     }
 }
@@ -86,11 +84,7 @@ impl std::ops::Mul<Point3> for i64 {
 
     fn mul(self, rhs: Point3) -> Self::Output {
         Point3 {
-            v: [
-                self * rhs.v[0],
-                self * rhs.v[1],
-                self * rhs.v[2],
-            ]
+            v: [self * rhs.v[0], self * rhs.v[1], self * rhs.v[2]],
         }
     }
 }
@@ -106,11 +100,7 @@ impl std::ops::Div<i64> for Point3 {
 
     fn div(self, rhs: i64) -> Self::Output {
         Point3 {
-            v: [
-                self.v[0] / rhs,
-                self.v[1] / rhs,
-                self.v[2] / rhs,
-            ]
+            v: [self.v[0] / rhs, self.v[1] / rhs, self.v[2] / rhs],
         }
     }
 }
@@ -126,11 +116,7 @@ impl std::ops::Neg for Point3 {
 
     fn neg(self) -> Self::Output {
         Point3 {
-            v: [
-                -self.v[0],
-                -self.v[1],
-                -self.v[2],
-            ]
+            v: [-self.v[0], -self.v[1], -self.v[2]],
         }
     }
 }

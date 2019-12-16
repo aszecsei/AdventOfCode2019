@@ -1,5 +1,5 @@
-use aoc_runner_derive::{aoc, aoc_generator};
 use crate::shared::*;
+use aoc_runner_derive::{aoc, aoc_generator};
 
 // ======================================================
 // DAY 12
@@ -87,7 +87,7 @@ pub fn solve_day13_part2(input: &[i64]) -> i64 {
                     ball_pos_x = x;
                 }
             }
-            
+
             output_idx += 3;
         }
 
