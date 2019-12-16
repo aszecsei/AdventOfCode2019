@@ -1,7 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use itertools::Itertools;
 use crate::shared::*;
-use std::collections::HashMap;
 
 // ======================================================
 // DAY 12
@@ -41,36 +39,37 @@ impl From<u8> for Tile {
 #[aoc(day13, part1)]
 pub fn solve_day13_part1(input: &[i64]) -> usize {
     let mut program = Program::new(input, &[]);
-    let mut screen: HashMap<(i64, i64), Tile> = HashMap::new();
 
     let mut output_idx = 0;
+    let mut block_count = 0;
 
     while program.get_status() != IntcodeStepResult::Halt {
         program.run();
         while output_idx < program.outputs.len() {
-            let x = program.outputs[output_idx];
-            let y = program.outputs[output_idx + 1];
+            let _x = program.outputs[output_idx];
+            let _y = program.outputs[output_idx + 1];
             let t: Tile = (program.outputs[output_idx + 2] as u8).into();
-            screen.insert((x, y), t);
+            if t == Tile::Block {
+                block_count += 1;
+            }
 
             output_idx += 3;
         }
     }
 
-    screen.values().filter(|&v| *v == Tile::Block).count()
+    block_count
 }
 
 #[aoc(day13, part2)]
 pub fn solve_day13_part2(input: &[i64]) -> i64 {
     let mut program = Program::new(input, &[]);
     program[0] = 2;
-    let mut screen: HashMap<(i64, i64), Tile> = HashMap::new();
 
     let mut output_idx = 0;
     let mut score = 0;
 
-    let mut ball_pos = (0, 0);
-    let mut paddle_pos = (0, 0);
+    let mut ball_pos_x = 0;
+    let mut paddle_pos_x = 0;
 
     while program.get_status() != IntcodeStepResult::Halt {
         program.run();
@@ -81,12 +80,11 @@ pub fn solve_day13_part2(input: &[i64]) -> i64 {
                 score = program.outputs[output_idx + 2];
             } else {
                 let t: Tile = (program.outputs[output_idx + 2] as u8).into();
-                screen.insert((x, y), t);
 
                 if t == Tile::Paddle {
-                    paddle_pos = (x, y);
+                    paddle_pos_x = x;
                 } else if t == Tile::Ball {
-                    ball_pos = (x, y);
+                    ball_pos_x = x;
                 }
             }
             
@@ -94,7 +92,7 @@ pub fn solve_day13_part2(input: &[i64]) -> i64 {
         }
 
         if program.get_status() == IntcodeStepResult::WaitingForInput {
-            let mv = (ball_pos.0 - paddle_pos.0).signum();
+            let mv = (ball_pos_x - paddle_pos_x).signum();
             program.add_input(mv);
         }
     }

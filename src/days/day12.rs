@@ -5,6 +5,7 @@ use regex::Regex;
 use lazy_static::lazy_static;
 use std::collections::HashSet;
 use num::integer::lcm;
+use rayon::prelude::*;
 
 use crate::helper::Point3;
 
@@ -60,17 +61,17 @@ pub fn solve_day12_part1_h(input: &[Point3], steps: i64) -> i64 {
             let mut new_vel = x.vel;
             for y in moons.iter() {
                 // Get x-vel change
-                let delta_x = match x.pos.x.cmp(&y.pos.x) {
+                let delta_x = match x.pos.x().cmp(&y.pos.x()) {
                     std::cmp::Ordering::Less => 1,
                     std::cmp::Ordering::Equal => 0,
                     std::cmp::Ordering::Greater => -1,
                 };
-                let delta_y = match x.pos.y.cmp(&y.pos.y) {
+                let delta_y = match x.pos.y().cmp(&y.pos.y()) {
                     std::cmp::Ordering::Less => 1,
                     std::cmp::Ordering::Equal => 0,
                     std::cmp::Ordering::Greater => -1,
                 };
-                let delta_z = match x.pos.z.cmp(&y.pos.z) {
+                let delta_z = match x.pos.z().cmp(&y.pos.z()) {
                     std::cmp::Ordering::Less => 1,
                     std::cmp::Ordering::Equal => 0,
                     std::cmp::Ordering::Greater => -1,
@@ -96,126 +97,37 @@ pub fn solve_day12_part1(input: &[Point3]) -> i64 {
     solve_day12_part1_h(input, 1000)
 }
 
+fn day12_p2_helper(input: &[Point3], idx: usize) -> i64 {
+    let mut moons = input.iter().map(|&x| Moon::from_pos(x)).collect_vec();
+    let mut prev: HashSet<Vec<Moon>> = HashSet::new();
+    let mut steps = 0;
+
+    loop {
+        moons = moons.iter().map(|x| { // Apply gravity
+            let mut new_vel = x.vel;
+            for y in moons.iter() {
+                let delta = match x.pos[idx].cmp(&y.pos[idx]) {
+                    std::cmp::Ordering::Less => 1,
+                    std::cmp::Ordering::Equal => 0,
+                    std::cmp::Ordering::Greater => -1,
+                };
+                new_vel[idx] += delta;
+            }
+            Moon::new(x.pos, new_vel).apply_velocity()
+        }).collect_vec();
+
+        if prev.contains(&moons) {
+            break;
+        }
+        prev.insert(moons.clone());
+        steps += 1;
+    }
+    steps
+}
+
 #[aoc(day12, part2)]
 pub fn solve_day12_part2(input: &[Point3]) -> i64 {
-    let steps_x = {
-        let mut moons = input.iter().map(|&x| Moon::from_pos(x)).collect_vec();
-        let mut prev: HashSet<Vec<Moon>> = HashSet::new();
-        let mut steps = 0;
-
-        loop {
-            moons = moons.iter().map(|x| { // Apply gravity
-                let mut new_vel = x.vel;
-                for y in moons.iter() {
-                    // Get x-vel change
-                    let delta_x = match x.pos.x.cmp(&y.pos.x) {
-                        std::cmp::Ordering::Less => 1,
-                        std::cmp::Ordering::Equal => 0,
-                        std::cmp::Ordering::Greater => -1,
-                    };
-                    let _delta_y = match x.pos.y.cmp(&y.pos.y) {
-                        std::cmp::Ordering::Less => 1,
-                        std::cmp::Ordering::Equal => 0,
-                        std::cmp::Ordering::Greater => -1,
-                    };
-                    let _delta_z = match x.pos.z.cmp(&y.pos.z) {
-                        std::cmp::Ordering::Less => 1,
-                        std::cmp::Ordering::Equal => 0,
-                        std::cmp::Ordering::Greater => -1,
-                    };
-                    new_vel += Point3::new(delta_x, 0, 0);
-                }
-                Moon::new(x.pos, new_vel).apply_velocity()
-            }).collect_vec();
-
-            if prev.contains(&moons) {
-                break;
-            }
-            prev.insert(moons.clone());
-            steps += 1;
-        }
-        steps
-    };
-
-    let steps_y = {
-        let mut moons = input.iter().map(|&x| Moon::from_pos(x)).collect_vec();
-        let mut prev: HashSet<Vec<Moon>> = HashSet::new();
-        let mut steps = 0;
-
-        loop {
-            moons = moons.iter().map(|x| { // Apply gravity
-                let mut new_vel = x.vel;
-                for y in moons.iter() {
-                    // Get x-vel change
-                    let _delta_x = match x.pos.x.cmp(&y.pos.x) {
-                        std::cmp::Ordering::Less => 1,
-                        std::cmp::Ordering::Equal => 0,
-                        std::cmp::Ordering::Greater => -1,
-                    };
-                    let delta_y = match x.pos.y.cmp(&y.pos.y) {
-                        std::cmp::Ordering::Less => 1,
-                        std::cmp::Ordering::Equal => 0,
-                        std::cmp::Ordering::Greater => -1,
-                    };
-                    let _delta_z = match x.pos.z.cmp(&y.pos.z) {
-                        std::cmp::Ordering::Less => 1,
-                        std::cmp::Ordering::Equal => 0,
-                        std::cmp::Ordering::Greater => -1,
-                    };
-                    new_vel += Point3::new(0, delta_y, 0);
-                }
-                Moon::new(x.pos, new_vel).apply_velocity()
-            }).collect_vec();
-
-            if prev.contains(&moons) {
-                break;
-            }
-            prev.insert(moons.clone());
-            steps += 1;
-        }
-        steps
-    };
-
-    let steps_z = {
-        let mut moons = input.iter().map(|&x| Moon::from_pos(x)).collect_vec();
-        let mut prev: HashSet<Vec<Moon>> = HashSet::new();
-        let mut steps = 0;
-
-        loop {
-            moons = moons.iter().map(|x| { // Apply gravity
-                let mut new_vel = x.vel;
-                for y in moons.iter() {
-                    // Get x-vel change
-                    let _delta_x = match x.pos.x.cmp(&y.pos.x) {
-                        std::cmp::Ordering::Less => 1,
-                        std::cmp::Ordering::Equal => 0,
-                        std::cmp::Ordering::Greater => -1,
-                    };
-                    let _delta_y = match x.pos.y.cmp(&y.pos.y) {
-                        std::cmp::Ordering::Less => 1,
-                        std::cmp::Ordering::Equal => 0,
-                        std::cmp::Ordering::Greater => -1,
-                    };
-                    let delta_z = match x.pos.z.cmp(&y.pos.z) {
-                        std::cmp::Ordering::Less => 1,
-                        std::cmp::Ordering::Equal => 0,
-                        std::cmp::Ordering::Greater => -1,
-                    };
-                    new_vel += Point3::new(0, 0, delta_z);
-                }
-                Moon::new(x.pos, new_vel).apply_velocity()
-            }).collect_vec();
-
-            if prev.contains(&moons) {
-                break;
-            }
-            prev.insert(moons.clone());
-            steps += 1;
-        }
-        steps
-    };
-
-    lcm(steps_x, lcm(steps_y, steps_z))
+    [0, 1, 2].par_iter().map(|&i| day12_p2_helper(input, i)).reduce(|| 1, lcm)
 }
 
 #[test]
