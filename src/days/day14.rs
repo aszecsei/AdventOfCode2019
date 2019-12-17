@@ -1,10 +1,10 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 
+use itertools::Itertools;
 use lazy_static::lazy_static;
 use regex::Regex;
-use string_interner::{StringInterner, Sym};
-use itertools::Itertools;
 use std::collections::HashMap;
+use string_interner::{StringInterner, Sym};
 
 // ======================================================
 // DAY 14
@@ -22,8 +22,10 @@ pub struct Recipe {
 #[aoc_generator(day14)]
 pub fn input_generator_day14(input: &str) -> (Vec<Recipe>, Sym, Sym) {
     lazy_static! {
-        static ref RE: Regex =
-            Regex::new(r"(?P<inputs>\d+ [a-zA-Z]+(?:, \d+ [a-zA-Z]+)*) => (?P<output>\d+ [a-zA-Z]+)").unwrap();
+        static ref RE: Regex = Regex::new(
+            r"(?P<inputs>\d+ [a-zA-Z]+(?:, \d+ [a-zA-Z]+)*) => (?P<output>\d+ [a-zA-Z]+)"
+        )
+        .unwrap();
     }
     let mut interner = StringInterner::default();
     let recipes = input
@@ -34,15 +36,18 @@ pub fn input_generator_day14(input: &str) -> (Vec<Recipe>, Sym, Sym) {
             let output = caps["output"].to_owned();
 
             // Parse the inputs
-            let inputs = inputs.split(',').map(|s| {
-                let mut parts = s.trim().split(' ');
-                let part1 = parts.next().unwrap();
-                let part2 = parts.next().unwrap();
-                Quantity {
-                    amount: part1.parse().unwrap(),
-                    symbol: interner.get_or_intern(part2),
-                }
-            }).collect_vec();
+            let inputs = inputs
+                .split(',')
+                .map(|s| {
+                    let mut parts = s.trim().split(' ');
+                    let part1 = parts.next().unwrap();
+                    let part2 = parts.next().unwrap();
+                    Quantity {
+                        amount: part1.parse().unwrap(),
+                        symbol: interner.get_or_intern(part2),
+                    }
+                })
+                .collect_vec();
             let mut output_parts = output.split(' ');
             let part1 = output_parts.next().unwrap();
             let part2 = output_parts.next().unwrap();
@@ -50,16 +55,20 @@ pub fn input_generator_day14(input: &str) -> (Vec<Recipe>, Sym, Sym) {
                 amount: part1.parse().unwrap(),
                 symbol: interner.get_or_intern(part2),
             };
-            Recipe {
-                inputs,
-                output
-            }
+            Recipe { inputs, output }
         })
         .collect_vec();
-    (recipes, interner.get("ORE").unwrap(), interner.get("FUEL").unwrap())
+    (
+        recipes,
+        interner.get("ORE").unwrap(),
+        interner.get("FUEL").unwrap(),
+    )
 }
 
-fn solve_day14_part1_h((recipes, ore_sym, fuel_sym): &(Vec<Recipe>, Sym, Sym), fuel_to_make: i64) -> i64 {
+fn solve_day14_part1_h(
+    (recipes, ore_sym, fuel_sym): &(Vec<Recipe>, Sym, Sym),
+    fuel_to_make: i64,
+) -> i64 {
     let mut need: HashMap<Sym, i64> = HashMap::default();
     need.insert(*fuel_sym, fuel_to_make);
 
@@ -68,19 +77,31 @@ fn solve_day14_part1_h((recipes, ore_sym, fuel_sym): &(Vec<Recipe>, Sym, Sym), f
     while num_to_make > 0 {
         // Choose a needed product
         let (&to_make, &to_make_amt) = need.iter().find(|(&k, &v)| k != *ore_sym && v > 0).unwrap();
-        
+
         // Find a recipe to make that product
-        let recipe = recipes.iter().find(|&r| r.output.symbol == to_make).unwrap();
+        let recipe = recipes
+            .iter()
+            .find(|&r| r.output.symbol == to_make)
+            .unwrap();
 
         let num_times_to_make = (to_make_amt as f64 / recipe.output.amount as f64).ceil() as i64;
 
-        need.insert(to_make, to_make_amt - num_times_to_make * recipe.output.amount as i64);
+        need.insert(
+            to_make,
+            to_make_amt - num_times_to_make * recipe.output.amount as i64,
+        );
         for quantity in recipe.inputs.iter() {
             let prev = *need.get(&quantity.symbol).unwrap_or(&0);
-            need.insert(quantity.symbol, prev + num_times_to_make * quantity.amount as i64);
+            need.insert(
+                quantity.symbol,
+                prev + num_times_to_make * quantity.amount as i64,
+            );
         }
 
-        num_to_make = need.iter().filter(|(&k, &v)| k != *ore_sym && v > 0).count();
+        num_to_make = need
+            .iter()
+            .filter(|(&k, &v)| k != *ore_sym && v > 0)
+            .count();
     }
 
     need[ore_sym]
@@ -106,7 +127,9 @@ pub fn solve_day14_part2(inp: &(Vec<Recipe>, Sym, Sym)) -> i64 {
         }
 
         // Test one below upper limit
-        if solve_day14_part1_h(inp, upper - 1) <= 1_000_000_000_000 && solve_day14_part1_h(inp, upper) > 1_000_000_000_000 {
+        if solve_day14_part1_h(inp, upper - 1) <= 1_000_000_000_000
+            && solve_day14_part1_h(inp, upper) > 1_000_000_000_000
+        {
             return upper - 1;
         }
         if solve_day14_part1_h(inp, upper) <= 1_000_000_000_000 {
