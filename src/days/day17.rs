@@ -1,7 +1,7 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use itertools::Itertools;
 
-use crate::helper::Point;
+use crate::helper::{replace_all_with, Point};
 use crate::shared::*;
 
 // ======================================================
@@ -32,8 +32,8 @@ enum Tile {
 }
 
 impl Tile {
-    fn get_dir(&self) -> Option<Dir> {
-        if let &Tile::Robot(d) = self {
+    fn get_dir(self) -> Option<Dir> {
+        if let Tile::Robot(d) = self {
             Some(d)
         } else {
             None
@@ -249,22 +249,16 @@ pub fn solve_day15_part2(input: &[i64]) -> i64 {
             if let Direction::Subroutine(_) = master[idx] {
                 if !s.is_empty() {
                     // Replace all instances of the subroutine in `master` with this particular subroutine call
-                    let mut m_idx = 0;
-                    'outer_1: while m_idx <= master.len() - s.len() {
-                        for mm_idx in 0..s.len() {
-                            if s[mm_idx] != master[m_idx + mm_idx] {
-                                m_idx += 1;
-                                continue 'outer_1;
-                            }
-                        }
-                        master[m_idx] = Direction::Subroutine(s_idx);
-                        for _ in 1..s.len() {
-                            master.remove(m_idx + 1);
-                        }
-                        m_idx += 1;
-                    }
+                    replace_all_with(&mut master, &s, &[Direction::Subroutine(s_idx)]);
+
+                    // We're 1 + s.len() beyond the start of s. We remove s.len() - 1 elements from the array,
+                    // and we want to progress 1 further.
+                    // To stay at the same point, we subtract s.len() - 1 from idx.
+                    // Then we progress forward by 1, for a total subtraction of s.len() - 2.
+                    idx -= s.len() - 2;
+                } else {
+                    idx += 1;
                 }
-                idx -= (s.len() - 1);
                 continue;
             }
 
@@ -281,20 +275,7 @@ pub fn solve_day15_part2(input: &[i64]) -> i64 {
                 // If not, we go back to the last valid configuration
                 s.remove(s.len() - 1);
                 // Replace all instances of the subroutine in `master` with this particular subroutine call
-                let mut m_idx = 0;
-                'outer_2: while m_idx <= master.len() - s.len() {
-                    for mm_idx in 0..s.len() {
-                        if s[mm_idx] != master[m_idx + mm_idx] {
-                            m_idx += 1;
-                            continue 'outer_2;
-                        }
-                    }
-                    master[m_idx] = Direction::Subroutine(s_idx);
-                    for _ in 1..s.len() {
-                        master.remove(m_idx + 1);
-                    }
-                    m_idx += 1;
-                }
+                replace_all_with(&mut master, &s, &[Direction::Subroutine(s_idx)]);
                 break;
             } else {
                 idx += 1;
