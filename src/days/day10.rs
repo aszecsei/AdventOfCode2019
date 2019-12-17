@@ -77,8 +77,6 @@ pub fn solve_day10_part2(input: &[(i64, i64)]) -> usize {
         best_base
     };
 
-    println!("Base: {:?}", base);
-
     let mut asteroids = input.to_vec();
     let mut counter = 199;
     loop {
@@ -98,8 +96,6 @@ pub fn solve_day10_part2(input: &[(i64, i64)]) -> usize {
         let ast2 = asteroids.clone();
         asteroids.retain(|a| a != &base && ast2.iter().all(|b| !is_blocking(&base, a, b)));
     }
-
-    println!("Deleted all but {} asteroids...", asteroids.len());
 
     const PI_OVER_TWO: f64 = std::f64::consts::PI / 2f64;
     const TWO_PI: f64 = std::f64::consts::PI * 2f64;
