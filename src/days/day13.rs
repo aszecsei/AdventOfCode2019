@@ -2,7 +2,7 @@ use crate::shared::*;
 use aoc_runner_derive::{aoc, aoc_generator};
 
 // ======================================================
-// DAY 12
+// DAY 13
 // ======================================================
 
 #[aoc_generator(day13)]
