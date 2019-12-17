@@ -114,9 +114,14 @@ pub fn solve_day14_part1(inp: &(Vec<Recipe>, Sym, Sym)) -> i64 {
 
 #[aoc(day14, part2)]
 pub fn solve_day14_part2(inp: &(Vec<Recipe>, Sym, Sym)) -> i64 {
+    // Calculate a ballpark estimate for the upper bound
+    let ore_per_fuel = solve_day14_part1_h(inp, 1);
+    let fuel_per_ore = 1f64 / (ore_per_fuel as f64);
+    let fuel_for_1t_ore = (fuel_per_ore * 1_000_000_000_000f64).ceil() as i64 * 1_000;
+
     // Binary search
     let mut lower = 0;
-    let mut upper = 100_000_000;
+    let mut upper = fuel_for_1t_ore;
     let mut fuel = upper / 2;
     loop {
         let ore_cost = solve_day14_part1_h(inp, fuel);
