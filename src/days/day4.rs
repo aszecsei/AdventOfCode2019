@@ -58,6 +58,8 @@ fn day4((start, end): &(usize, usize), part2: bool) -> usize {
         }
     }
 
+    println!("Starting from {}", get_num(&digits));
+
     let mut count = 0;
 
     while get_num(&digits) < *end {

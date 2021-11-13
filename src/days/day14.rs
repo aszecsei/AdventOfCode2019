@@ -125,10 +125,10 @@ pub fn solve_day14_part2(inp: &(Vec<Recipe>, Sym, Sym)) -> i64 {
     let mut fuel = upper / 2;
     loop {
         let ore_cost = solve_day14_part1_h(inp, fuel);
-        if ore_cost < 1_000_000_000_000 {
-            lower = fuel;
-        } else if ore_cost > 1_000_000_000_000 {
-            upper = fuel;
+        match ore_cost.cmp(&1_000_000_000_000) {
+            std::cmp::Ordering::Less => lower = fuel,
+            std::cmp::Ordering::Greater => upper = fuel,
+            _ => (),
         }
 
         // Test one below upper limit
@@ -204,7 +204,7 @@ fn test_day14_p1_large_2() {
     176 ORE => 6 VJHF";
     let parsed = input_generator_day14(input);
     let result = solve_day14_part1(&parsed);
-    assert_eq!(result, 180697);
+    assert_eq!(result, 180_697);
 }
 
 #[test]
@@ -228,7 +228,7 @@ fn test_day14_p1_large_3() {
     5 BHXH, 4 VRPVC => 5 LTCX";
     let parsed = input_generator_day14(input);
     let result = solve_day14_part1(&parsed);
-    assert_eq!(result, 2210736);
+    assert_eq!(result, 2_210_736);
 }
 
 #[test]
@@ -244,7 +244,7 @@ fn test_day14_p2_long_1() {
     3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT";
     let parsed = input_generator_day14(input);
     let result = solve_day14_part2(&parsed);
-    assert_eq!(result, 82892753);
+    assert_eq!(result, 82_892_753);
 }
 
 #[test]
@@ -263,7 +263,7 @@ fn test_day14_p2_large_2() {
     176 ORE => 6 VJHF";
     let parsed = input_generator_day14(input);
     let result = solve_day14_part2(&parsed);
-    assert_eq!(result, 5586022);
+    assert_eq!(result, 5_586_022);
 }
 
 #[test]
@@ -287,5 +287,5 @@ fn test_day14_p2_large_3() {
     5 BHXH, 4 VRPVC => 5 LTCX";
     let parsed = input_generator_day14(input);
     let result = solve_day14_part2(&parsed);
-    assert_eq!(result, 460664);
+    assert_eq!(result, 460_664);
 }
